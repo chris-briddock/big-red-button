@@ -119,7 +119,7 @@ jobs:
     
     strategy:
       matrix:
-        platform: [android, ios]
+        platform: [android]
     
     steps:
       - name: 🏗 Setup repo
