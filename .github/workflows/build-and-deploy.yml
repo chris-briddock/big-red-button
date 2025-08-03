@@ -83,15 +83,21 @@ jobs:
           cache: npm
           cache-dependency-path: ./src/bigredbutton/package-lock.json
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: 🏗 Setup EAS CLI
+        run: npm install -g @expo/eas-cli
+
+      - name: 🔐 Authenticate with Expo
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
         run: npm ci
+
+      - name: ✅ Verify EAS setup
+        run: |
+          eas whoami
+          eas project:info
 
       - name: 🚀 Build preview
         run: eas build --platform android --profile preview --non-interactive --no-wait
@@ -120,15 +126,21 @@ jobs:
           cache: npm
           cache-dependency-path: ./src/bigredbutton/package-lock.json
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: 🏗 Setup EAS CLI
+        run: npm install -g @expo/eas-cli
+
+      - name: 🔐 Authenticate with Expo
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
         run: npm ci
+
+      - name: ✅ Verify EAS setup
+        run: |
+          eas whoami
+          eas project:info
 
       - name: 🚀 Build production
         run: eas build --platform ${{ matrix.platform }} --profile production --non-interactive
@@ -153,15 +165,21 @@ jobs:
           cache: npm
           cache-dependency-path: ./src/bigredbutton/package-lock.json
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: 🏗 Setup EAS CLI
+        run: npm install -g @expo/eas-cli
+
+      - name: 🔐 Authenticate with Expo
+        run: eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: 📦 Install dependencies
         run: npm ci
+
+      - name: ✅ Verify EAS setup
+        run: |
+          eas whoami
+          eas project:info
 
       - name: 🚀 Publish update
         run: eas update --branch preview --message "Automated OTA update from develop branch"
