@@ -5,6 +5,17 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_track:
+        description: 'Release track for Google Play Store'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - beta
+          - production
 
 jobs:
   test:
@@ -35,6 +46,8 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           directory: ./src/bigredbutton/coverage
+        env: 
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Lint Code
@@ -149,6 +162,74 @@ jobs:
         run: eas build --platform ${{ matrix.platform }} --profile production --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  submit-to-store:
+    name: Submit to Google Play Store
+    runs-on: ubuntu-latest
+    needs: [build-production]
+    if: (github.ref == 'refs/heads/main' && github.event_name == 'push') || github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: ./src/bigredbutton
+
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: ./src/bigredbutton/package-lock.json
+
+      - name: 🏗 Setup EAS CLI
+        run: npm install --global eas-cli
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: ✅ Verify EAS setup
+        run: |
+          eas whoami || eas login --token $EXPO_TOKEN
+          eas project:info
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🔑 Setup Google Service Account
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}' > google-service-account-key.json
+
+      - name: 🏪 Submit to Google Play Store
+        run: |
+          TRACK="${{ github.event.inputs.release_track || 'internal' }}"
+          echo "Submitting to Google Play Store - Track: $TRACK"
+
+          case $TRACK in
+            "internal")
+              PROFILE="production"
+              ;;
+            "beta")
+              PROFILE="beta"
+              ;;
+            "production")
+              PROFILE="release"
+              ;;
+            *)
+              echo "Invalid release track: $TRACK"
+              exit 1
+              ;;
+          esac
+
+          echo "Using EAS profile: $PROFILE"
+          eas submit --platform android --profile $PROFILE --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          rm -f google-service-account-key.json
 
   update-ota:
     name: Publish OTA Update
