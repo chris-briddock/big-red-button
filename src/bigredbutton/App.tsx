@@ -139,6 +139,10 @@ export default function App() {
           style={styles.bigRedButton}
           onPress={handleButtonPress}
           activeOpacity={0.8}
+          testID="red-button"
+          accessibilityRole="button"
+          accessibilityLabel="Big Red Button"
+          accessibilityHint="Press to start the countdown and explosion"
         >
           <Text style={styles.buttonText}>PRESS ME!</Text>
         </TouchableOpacity>

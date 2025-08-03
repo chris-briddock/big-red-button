@@ -1,0 +1,85 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/bigredbutton
+    
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: npm
+          cache-dependency-path: ./src/bigredbutton/package-lock.json
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Check package vulnerabilities
+        run: npm audit --audit-level moderate
+
+      - name: 📱 Validate Expo config
+        run: npx expo config --type public
+
+      - name: 🎯 Check bundle size
+        run: |
+          npx expo export --platform web
+          du -sh dist/
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/bigredbutton
+    
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 🔒 Run security audit
+        run: |
+          npm audit --audit-level high
+          npx audit-ci --high
+
+  compatibility:
+    name: Check Compatibility
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src/bigredbutton
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: ./src/bigredbutton/package-lock.json
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests
+        run: npm test -- --watchAll=false
+
+      - name: 🎨 Check TypeScript
+        run: npx tsc --noEmit
