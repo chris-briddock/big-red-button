@@ -160,14 +160,6 @@ The app is ready for Google Play Store submission with:
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🎉 Fun Facts
-
-- The button press is intentionally satisfying with haptic-like visual feedback
-- Particle explosion uses physics-inspired random trajectories
-- The countdown creates anticipation before the "big moment"
-- Perfect for stress relief and entertainment
-- Great conversation starter app!
-
 ## 🐛 Known Issues
 
 - None currently reported
